@@ -1,59 +1,96 @@
-import './a-file'
-
 # make it work(DIY), make it right(Github), make it fast(...)
 # mbaPending (frontendBench dbmonster domReconsileBench busyEye gameOfLife imba-ui) jherr(Fight spectrum ) secretLlama movieApp
 
+const A = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]
+const C = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]
+const N = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse",  "keyboard"]
+
 let items = []
-var selected = 0
-var next = 1
+var selected = 10
+var nextId = 1
+
+global css body ff:sans
+
+extend tag element
+	attr aria-hidden
 
 tag Header
 	<self [mb:4]>
 
-tag Row
-	prop i
-	prop row
+tag Row < tr
+	prop data
 	<self>
-		<tr> 
-			<td> "{i+1}"
-			<td> "{row}"
-			<td> 
-				<div [cursor:pointer] @click=(items.splice(i,1))> "❌"
+		css
+			&>td lh:2 p:0.5rem border-top:1px warm4
+			& bg@odd:gray1 @hover:warm3
+			&.danger bg:red1
+			
+		<td> "{data.id}"
+		<td> "{data.label}"
+		<td> 
+			<div aria-hidden="true" [cursor:pointer] @click=emit('remove', data)> "❌"
+
+def choose max
+	return Math.round(Math.random() * 1000) % max
+
+def buildData count\number
+	var newItems = new Array(count)
+	for i in [1...count+1]
+		newItems[i - 1] = {
+			id: nextId,
+			label: "{A[choose(A.length)]} {C[choose(C.length)]} {N[choose(N.length)]}"
+		}
+		nextId += 1
+	newItems
+
 
 tag Main
-	def genRow row\number
-		for i in [1...row + 1]
-			items[i - 1] = i
+	def setup
+		items = buildData(10)
 
-	def addRow row
-		for i in [0...row]
-			items.push i
+	def handleRemove e
+		console.log e.detail
+		items.splice(items.indexOf(e.detail), 1)
 
-	def updateRow
-		for row, i in items
-			if (i+1) % 10 === 0
-				items[i] = "Mod"
+	def run
+		items = buildData(1000)
+
+	def runLots
+		items = buildData(10_000)
+	
+	def add
+		items = items.concat(buildData(1000))
+
+	def update
+		var i = 0
+		while i < items.len
+			var item = items[i]
+			items[i] = {id: item.id, label: item.label + ' !!!'}
+			i += 10
+
+	def clear
+		items = []
 
 	def swapRow 
-		for row, i in items
-			if (i+1) % 10 == 0
-				let tmp = items[i]
-				items[i] = items[i - 10]
-				items[i - 10] =  tmp
+		if items.len > 998
+			[items[1], items[998]] = [items[998], items[1]]
 
 	<self>
-		<div [d:flex bg:warm2]>
-			<div [fs:4xl d:vcc w:100]> "VanillaJS-\"keyed\""
-			<div [ta:right w:110]>
-				css button bg:blue7 @hover:blue8 c:white p:2 w:50 m:1 rd:lg
-				<button @click=genRow(1000)> "create 1000 rows"
-				<button @click=genRow(10_000)> "create 10,000 rows"
-				<button @click=addRow(1000)> "append 1000 rows"
-				<button @click=updateRow> "update every 10th row"
-				<button @click=(items = [])> "Clear"
+		<div>
+			css & d:flex d@lt-md:vflex jc:flex-end ai:center bg:gray13 mb:2 rd:xl
+			<div [fs:4xl ta:center flg:1]> "VanillaJS-\"keyed\""
+			<div [w:85]>
+				css button bg:#337ab7 @hover:#286090 bc:#2e6da4 @hover:#204d74 c:white py:1.5 px:3 fs:sm bd:0 m:1 rd:2 min-width:40
+				<button @click=run> "create 1000 rows"
+				<button @click=runLots> "create 10,000 rows"
+				<button @click=add> "append 1000 rows"
+				<button @click=update> "update every 10th row"
+				<button @click=clear> "Clear"
 				<button @click=swapRow> "Swap Rows"
-		<table>
-			for row, i in items
-				<Row row=row i=i >
+		<table [border-spacing:0 w:100vw]>
+			for item in items
+				<Row key=item.id data=item .danger=(item.id === selected) 
+					@click=(selected = item.id) 
+					@remove=handleRemove>
 
 imba.mount <Main>
