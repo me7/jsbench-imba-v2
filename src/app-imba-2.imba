@@ -13,9 +13,10 @@ var selected = 10
 var nextId = 1
 
 tag Row < tr
+	prop data
 	def render
-		return if data === prev
-		prev = data
+		# return if data === prev
+		# prev = data
 		<self>
 			css
 				&>td lh:2 p:0.5rem border-top:1px warm4
@@ -66,7 +67,7 @@ tag Main
 
 	def update
 		var i = 0
-		while i < items.len
+		while i < items.length
 			var item = items[i]
 			items[i] = {id: item.id, label: item.label + ' !!!'}
 			i += 10
@@ -75,7 +76,7 @@ tag Main
 		items = []
 
 	def swapRow 
-		if items.len > 998
+		if items.length > 998
 			[items[1], items[998]] = [items[998], items[1]]
 
 	<self>
