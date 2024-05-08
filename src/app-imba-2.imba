@@ -5,51 +5,54 @@ const A = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome
 const C = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]
 const N = ["table", "chair", "house", "bbq", "desk", "car", "pony", "cookie", "sandwich", "burger", "pizza", "mouse",  "keyboard"]
 
-let items = []
+extend tag element
+	attr aria-hidden
+
+var items = []
 var selected = 10
 var nextId = 1
 
-global css body ff:sans
+tag Row < tr
+	def render
+		return if data === prev
+		prev = data
+		<self>
+			css
+				&>td lh:2 p:0.5rem border-top:1px warm4
+				& bg@odd:gray1 @hover:warm3
+				&.danger bg:red1
+				
+			<td> "{data.id}"
+			<td> "{data.label}"
+			<td> 
+				<div aria-hidden="true" [cursor:pointer] @click=emit('remove', data)> "❌"
 
-extend tag element
-	attr aria-hidden
+global css body ff:sans
 
 tag Header
 	<self [mb:4]>
 
-tag Row < tr
-	prop data
-	<self>
-		css
-			&>td lh:2 p:0.5rem border-top:1px warm4
-			& bg@odd:gray1 @hover:warm3
-			&.danger bg:red1
-			
-		<td> "{data.id}"
-		<td> "{data.label}"
-		<td> 
-			<div aria-hidden="true" [cursor:pointer] @click=emit('remove', data)> "❌"
 
 def choose max
 	return Math.round(Math.random() * 1000) % max
 
 def buildData count\number
 	var newItems = new Array(count)
-	for i in [1...count+1]
-		newItems[i - 1] = {
+	var i = 0
+	while i < count
+		newItems[i] = {
 			id: nextId,
 			label: "{A[choose(A.length)]} {C[choose(C.length)]} {N[choose(N.length)]}"
 		}
+		i += 1
 		nextId += 1
 	newItems
-
 
 tag Main
 	def setup
 		items = buildData(10)
 
 	def handleRemove e
-		console.log e.detail
 		items.splice(items.indexOf(e.detail), 1)
 
 	def run
@@ -90,6 +93,7 @@ tag Main
 		<table [border-spacing:0 w:100vw]>
 			for item in items
 				<Row key=item.id data=item .danger=(item.id === selected) 
+				# <Row data=item .danger=(item.id === selected) 
 					@click=(selected = item.id) 
 					@remove=handleRemove>
 
